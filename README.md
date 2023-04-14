@@ -150,7 +150,10 @@ To use this _CookieManager_ with WebKit-Support we extended the interface with t
 | clearAll    | Yes            | `CookieManager.clearAll(useWebKit:boolean)`                              |
 | clearByName | Yes            | `CookieManager.clearByName(url:string, name: string, useWebKit:boolean)` |
 | get         | Yes            | `CookieManager.get(url:string, useWebKit:boolean)`                       |
+| getAsRawString         | Yes            | `CookieManager.get(url:string, useWebKit:boolean)`                       |
 | set         | Yes            | `CookieManager.set(url:string, cookie:object, useWebKit:boolean)`        |
+
+*getAsRawString is the stupidest thing but whatever*
 
 ##### Usage
 
