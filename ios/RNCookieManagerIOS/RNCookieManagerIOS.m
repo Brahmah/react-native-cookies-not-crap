@@ -144,6 +144,46 @@ RCT_EXPORT_METHOD(
 }
 
 RCT_EXPORT_METHOD(
+    getAsRawString:(NSURL *)url
+    useWebKit:(BOOL)useWebKit
+    resolver:(RCTPromiseResolveBlock)resolve
+    rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (useWebKit) {
+        if (@available(iOS 11.0, *)) {
+            dispatch_async(dispatch_get_main_queue(), ^(){
+                NSString *topLevelDomain = url.host;
+
+                if (isEmpty(topLevelDomain)) {
+                    reject(@"", INVALID_URL_MISSING_HTTP, nil);
+                    return;
+                }
+
+                WKHTTPCookieStore *cookieStore = [[WKWebsiteDataStore defaultDataStore] httpCookieStore];
+                [cookieStore getAllCookies:^(NSArray<NSHTTPCookie *> *allCookies) {
+                    NSMutableDictionary *cookies = [NSMutableDictionary dictionary];
+                    for (NSHTTPCookie *cookie in allCookies) {
+                        if ([topLevelDomain containsString:cookie.domain] ||
+                            [cookie.domain isEqualToString: topLevelDomain]) {
+                            [cookies setObject:[self createCookieDataAsString:cookie] forKey:cookie.name];
+                        }
+                    }
+                    resolve(cookies);
+                }];
+            });
+        } else {
+            reject(@"", NOT_AVAILABLE_ERROR_MESSAGE, nil);
+        }
+    } else {
+        NSMutableDictionary *cookies = [NSMutableDictionary dictionary];
+        for (NSHTTPCookie *cookie in [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:url]) {
+            [cookies setObject:[self createCookieDataAsString:cookie] forKey:cookie.name];
+        }
+        resolve(cookies);
+    }
+}
+
+RCT_EXPORT_METHOD(
     clearAll:(BOOL)useWebKit
     resolver:(RCTPromiseResolveBlock)resolve
     rejecter:(RCTPromiseRejectBlock)reject)
@@ -334,6 +374,29 @@ RCT_EXPORT_METHOD(
     }
     [cookieData setObject:[NSNumber numberWithBool:(BOOL)cookie.secure] forKey:@"secure"];
     [cookieData setObject:[NSNumber numberWithBool:(BOOL)cookie.HTTPOnly] forKey:@"httpOnly"];
+    return cookieData;
+}
+
+- (NSString *)createCookieDataAsString:(NSHTTPCookie *)cookie {
+    NSString *cookieData = [NSString stringWithFormat:@"%@=%@", cookie.name, cookie.value];
+    if (cookie.domain) {
+        cookieData = [cookieData stringByAppendingFormat:@"; domain=%@", cookie.domain];
+    }
+    if (cookie.path) {
+        cookieData = [cookieData stringByAppendingFormat:@"; path=%@", cookie.path];
+    }
+    if (cookie.expiresDate) {
+        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+        [formatter setDateFormat:@"EEE, dd-MMM-yyyy HH:mm:ss zzz"];
+        NSString *expires = [formatter stringFromDate:cookie.expiresDate];
+        cookieData = [cookieData stringByAppendingFormat:@"; expires=%@", expires];
+    }
+    if (cookie.secure) {
+        cookieData = [cookieData stringByAppendingString:@"; secure"];
+    }
+    if (cookie.HTTPOnly) {
+        cookieData = [cookieData stringByAppendingString:@"; HttpOnly"];
+    }
     return cookieData;
 }
 

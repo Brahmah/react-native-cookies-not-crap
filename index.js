@@ -37,6 +37,7 @@ module.exports = {
   getAll: (useWebKit = false) => CookieManager.getAll(useWebKit),
   clearAll: (useWebKit = false) => CookieManager.clearAll(useWebKit),
   get: (url, useWebKit = false) => CookieManager.get(url, useWebKit),
+  getAsRawString: (url, useWebKit = false) => CookieManager.get(url, useWebKit),
   set: (url, cookie, useWebKit = false) =>
     CookieManager.set(url, cookie, useWebKit),
   clearByName: (url, name, useWebKit = false) =>

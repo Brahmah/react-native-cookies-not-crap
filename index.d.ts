@@ -19,6 +19,7 @@ declare module '@react-native-cookies/cookies' {
     setFromResponse(url: string, cookie: string): Promise<boolean>;
 
     get(url: string, useWebKit?: boolean): Promise<Cookies>;
+    getAsRawString(url: string, useWebKit?: boolean): Promise<string>
     getFromResponse(url: string): Promise<Cookies>;
 
     clearAll(useWebKit?: boolean): Promise<boolean>;
